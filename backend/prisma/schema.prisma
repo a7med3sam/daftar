@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Shop {
+  id        Int        @id @default(autoincrement())
+  name      String
+  phone     String?
+  notes     String?
+  createdAt DateTime   @default(now())
+  purchases Purchase[]
+}
+
+model Buyer {
+  id              Int        @id @default(autoincrement())
+  name            String
+  createdAt       DateTime   @default(now())
+  purchases       Purchase[] @relation("BuyerPurchases")
+  paidPurchases   Purchase[] @relation("PaidByPurchases")
+}
+
+model Purchase {
+  id            Int             @id @default(autoincrement())
+  shopId        Int
+  buyerId       Int
+  purchaseDate  DateTime
+  totalAmount   Decimal         @db.Decimal(10, 2)
+  paidAmount    Decimal         @default(0) @db.Decimal(10, 2)
+  paymentStatus PaymentStatus   @default(UNPAID)
+  paidById      Int?
+  paidAt        DateTime?
+  createdAt     DateTime        @default(now())
+
+  shop    Shop            @relation(fields: [shopId], references: [id])
+  buyer   Buyer           @relation("BuyerPurchases", fields: [buyerId], references: [id])
+  paidBy  Buyer?          @relation("PaidByPurchases", fields: [paidById], references: [id])
+  images  PurchaseImage[]
+}
+
+model PurchaseImage {
+  id         Int      @id @default(autoincrement())
+  purchaseId Int
+  imageUrl   String
+  isReceipt  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+}
