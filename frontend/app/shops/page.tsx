@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api, Shop } from '@/lib/api';
@@ -194,7 +194,7 @@ function ShopCard({ shop, onEdit, onDelete }: {
 }
 
 /* ── Main Page ── */
-export default function ShopsPage() {
+function ShopsContent() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -356,5 +356,13 @@ export default function ShopsPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function ShopsPage() {
+  return (
+    <Suspense fallback={<div className="loading-center"><span className="spinner" /></div>}>
+      <ShopsContent />
+    </Suspense>
   );
 }

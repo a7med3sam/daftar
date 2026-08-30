@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Cairo } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
 import './globals.css';
@@ -17,7 +17,12 @@ const cairo = Cairo({
 export const metadata: Metadata = {
   title: 'دفتر — تتبع المشتريات والديون',
   description: 'تطبيق عربي بسيط لتتبع مشترياتك وديونك مع المحلات التجارية. سهل الاستخدام على الهاتف.',
-  viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
   themeColor: '#5b52f0',
 };
 

@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api, Buyer } from '@/lib/api';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import BottomSheet from '@/components/ui/BottomSheet';
 import { SkeletonList } from '@/components/ui/Skeleton';
 
-export default function BuyersPage() {
+function BuyersContent() {
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -257,5 +257,13 @@ export default function BuyersPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function BuyersPage() {
+  return (
+    <Suspense fallback={<div className="loading-center"><span className="spinner" /></div>}>
+      <BuyersContent />
+    </Suspense>
   );
 }
