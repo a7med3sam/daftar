@@ -190,7 +190,7 @@ button {
 }
 
 .sidebar-logo-img {
-  width: 104px;
+  width: 78px;
   height: auto;
   display: block;
   flex-shrink: 0;
@@ -310,7 +310,7 @@ button {
 }
 
 .mobile-header-logo-img {
-  width: 86px;
+  width: 58px;
   height: auto;
   display: block;
   flex-shrink: 0;
@@ -603,6 +603,14 @@ button {
   overflow: hidden;
   transition: all var(--transition);
   box-shadow: var(--shadow-sm);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  grid-template-areas:
+    "value icon"
+    "label icon";
+  align-items: center;
+  column-gap: 0.75rem;
+  min-height: 82px;
 }
 
 .stat-card::before {
@@ -626,8 +634,10 @@ button {
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
-  margin-bottom: 0.75rem;
+  grid-area: icon;
+  margin-bottom: 0;
   flex-shrink: 0;
+  justify-self: end;
 }
 
 .stat-icon.accent  { background: var(--accent-light);  color: var(--accent); }
@@ -636,18 +646,22 @@ button {
 .stat-icon.danger  { background: var(--danger-light);  color: var(--danger); }
 
 .stat-value {
+  grid-area: value;
   font-size: 1.3rem;
   font-weight: 800;
   color: var(--text-primary);
   margin-bottom: 0.2rem;
   line-height: 1.2;
   letter-spacing: -0.02em;
+  min-width: 0;
 }
 
 .stat-label {
+  grid-area: label;
   font-size: 0.78rem;
   color: var(--text-secondary);
   font-weight: 500;
+  min-width: 0;
 }
 
 /* Hero stat — large prominent card */
@@ -1872,25 +1886,24 @@ tbody tr:hover {
 /* ── Mobile Navigation Update ── */
 .mobile-nav {
   position: fixed;
-  bottom: calc(0.75rem + env(safe-area-inset-bottom));
-  left: 0.75rem;
-  right: 0.75rem;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(200, 211, 232, 0.78);
-  border-radius: 24px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border: 0;
+  border-radius: 0;
   display: none; /* hidden on desktop */
   z-index: 1000;
-  padding: 0;
-  box-shadow: 0 12px 34px rgba(26, 34, 53, 0.14), inset 0 1px 0 rgba(255,255,255,0.7);
-  backdrop-filter: blur(22px) saturate(1.35);
-  -webkit-backdrop-filter: blur(22px) saturate(1.35);
+  padding: 0 0 env(safe-area-inset-bottom);
+  box-shadow: 0 -8px 24px rgba(26, 34, 53, 0.08);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   overflow: hidden;
 }
 
 .dark .mobile-nav {
-  background: rgba(21, 30, 48, 0.9);
-  border-color: rgba(55, 64, 96, 0.78);
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255,255,255,0.08);
+  background: var(--bg-secondary);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
 }
 @media (max-width: 768px) { .mobile-nav { display: block; } }
 
@@ -1994,7 +2007,7 @@ tbody tr:hover {
 /* Add Menu */
 .mobile-add-menu {
   position: fixed;
-  bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 0.9rem);
+  bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 0.25rem);
   left: 50%;
   transform: translateX(-50%) scale(0.9);
   display: flex;

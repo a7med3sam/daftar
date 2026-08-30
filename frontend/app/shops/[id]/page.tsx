@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api, ShopWithStats, Purchase, PurchaseImage } from '@/lib/api';
@@ -231,6 +232,17 @@ export default function ShopDetailPage() {
 /* ── Image Thumbnails Strip ── */
 function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [canPortal, setCanPortal] = useState(false);
+
+  useEffect(() => {
+    setCanPortal(true);
+  }, []);
+
+  const closeLightbox = (e: React.PointerEvent | React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLightboxIdx(null);
+  };
 
   return (
     <>
@@ -287,14 +299,15 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
         )}
       </div>
 
-      {/* Simple Lightbox */}
-      {lightboxIdx !== null && (
+      {lightboxIdx !== null && canPortal && createPortal(
         <div
           data-lightbox
-          onClick={(e) => {
+          onPointerDown={(e) => {
+            e.preventDefault();
             e.stopPropagation();
             setLightboxIdx(null);
           }}
+          onClick={(e) => e.stopPropagation()}
           style={{
             position: 'fixed',
             inset: 0,
@@ -314,6 +327,7 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
           <img
             src={images[lightboxIdx].imageUrl}
             alt=""
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: '95vw', maxHeight: '75vh', objectFit: 'contain', borderRadius: 12 }}
           />
@@ -321,19 +335,26 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
           <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem' }}>
             {lightboxIdx > 0 && (
               <button
+                onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
                 onClick={(e) => { e.stopPropagation(); setLightboxIdx((i) => (i ?? 1) - 1); }}
                 style={lbBtnStyle}
               >‹</button>
             )}
-            <button onClick={(e) => { e.stopPropagation(); setLightboxIdx(null); }} style={{ ...lbBtnStyle, fontSize: '1rem' }}>✕</button>
+            <button
+              onPointerDown={closeLightbox}
+              onClick={(e) => e.stopPropagation()}
+              style={{ ...lbBtnStyle, fontSize: '1rem' }}
+            >✕</button>
             {lightboxIdx < images.length - 1 && (
               <button
+                onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
                 onClick={(e) => { e.stopPropagation(); setLightboxIdx((i) => (i ?? 0) + 1); }}
                 style={lbBtnStyle}
               >›</button>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
