@@ -5,7 +5,6 @@ import './globals.css';
 import Sidebar from '@/components/Sidebar';
 import MobileNav from '@/components/MobileNav';
 import MobileHeader from '@/components/navigation/MobileHeader';
-import FAB from '@/components/ui/FAB';
 import PWARegister from '@/components/PWARegister';
 
 const cairo = Cairo({

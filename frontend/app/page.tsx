@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, DashboardStats, Purchase } from '@/lib/api';
-import { formatCurrency, formatDate, getStatusColor, getStatusLabel } from '@/lib/utils';
+import { formatCurrency, formatDate } from '@/lib/utils';
 import StatusBadge from '@/components/StatusBadge';
 import { SkeletonStatGrid, SkeletonList } from '@/components/ui/Skeleton';
 
@@ -54,8 +54,6 @@ export default function DashboardPage() {
   }
 
   const totalRemaining = stats?.totalRemaining ?? 0;
-  const hasDebt = totalRemaining > 0;
-
   return (
     <div>
       {/* ── Hero Card ── */}

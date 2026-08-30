@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState, useRef, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api, Shop } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import BottomSheet from '@/components/ui/BottomSheet';
 import { SkeletonList } from '@/components/ui/Skeleton';
@@ -210,23 +211,22 @@ function ShopsContent() {
   // Auto-open create sheet if ?action=new
   useEffect(() => {
     if (searchParams.get('action') === 'new') {
-      setModal('create');
-      router.replace('/shops');
+      const timer = window.setTimeout(() => {
+        setModal('create');
+        router.replace('/shops');
+      }, 0);
+
+      return () => window.clearTimeout(timer);
     }
   }, [searchParams, router]);
 
-  async function load() {
-    try {
-      const data = await api.shops.list();
-      setShops(data);
-    } catch {
-      setError('تعذّر تحميل المحلات');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    api.shops
+      .list()
+      .then(setShops)
+      .catch(() => setError('تعذّر تحميل المحلات'))
+      .finally(() => setLoading(false));
+  }, []);
 
   async function handleSave(data: Partial<Shop>) {
     setSaving(true);
@@ -239,8 +239,8 @@ function ShopsContent() {
         setShops([created, ...shops]);
       }
       setModal(null);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, 'تعذّر حفظ المحل'));
     } finally {
       setSaving(false);
     }
@@ -253,8 +253,8 @@ function ShopsContent() {
       await api.shops.delete(deleteTarget.id);
       setShops(shops.filter(s => s.id !== deleteTarget.id));
       setDeleteTarget(null);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, 'تعذّر حذف المحل'));
     } finally {
       setDeleting(false);
     }

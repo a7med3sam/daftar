@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api, Buyer } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import BottomSheet from '@/components/ui/BottomSheet';
 import { SkeletonList } from '@/components/ui/Skeleton';
@@ -80,8 +81,8 @@ function BuyersContent() {
         setBuyers([...buyers, { ...created, imageUrl: finalImageUrl }].sort((a, b) => a.name.localeCompare(b.name, 'ar')));
       }
       setModal(null);
-    } catch (e: any) {
-      setFormError(e.message);
+    } catch (e: unknown) {
+      setFormError(getErrorMessage(e, 'تعذّر حفظ المشتري'));
     } finally {
       setSaving(false);
     }
@@ -94,8 +95,8 @@ function BuyersContent() {
       await api.buyers.delete(deleteTarget.id);
       setBuyers(buyers.filter(b => b.id !== deleteTarget.id));
       setDeleteTarget(null);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, 'تعذّر حذف المشتري'));
     } finally {
       setDeleting(false);
     }
@@ -107,8 +108,8 @@ function BuyersContent() {
     try {
       const { imageUrl } = await api.buyers.uploadImage(buyer.id, file);
       setBuyers(buyers.map(b => b.id === buyer.id ? { ...b, imageUrl } : b));
-    } catch (e: any) {
-      setError(e.message || 'فشل رفع الصورة');
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, 'فشل رفع الصورة'));
     } finally {
       setUploadingId(null);
     }

@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api, ShopWithStats, Purchase, PurchaseImage } from '@/lib/api';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, getErrorMessage } from '@/lib/utils';
 import StatusBadge from '@/components/StatusBadge';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import PaymentModal from '@/components/PaymentModal';
@@ -24,7 +24,7 @@ export default function ShopDetailPage() {
   const [paymentDetailsTarget, setPaymentDetailsTarget] = useState<Purchase | null>(null);
   const [filter, setFilter] = useState<'all' | 'UNPAID' | 'PARTIALLY_PAID' | 'PAID'>('all');
 
-  async function load() {
+  const load = useCallback(async () => {
     try {
       const data = await api.shops.get(shopId);
       setShop(data);
@@ -33,9 +33,15 @@ export default function ShopDetailPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [shopId]);
 
-  useEffect(() => { load(); }, [shopId]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      load();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   async function handleDeletePurchase() {
     if (!deleteTarget) return;
@@ -44,8 +50,8 @@ export default function ShopDetailPage() {
       await api.purchases.delete(deleteTarget);
       setDeleteTarget(null);
       await load();
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, 'تعذّر حذف الفاتورة'));
     } finally {
       setDeleting(false);
     }
@@ -191,7 +197,6 @@ export default function ShopDetailPage() {
             <PurchaseCard
               key={p.id}
               purchase={p}
-              shopId={shopId}
               onPay={setPaymentTarget}
               onViewPayment={setPaymentDetailsTarget}
               onDelete={setDeleteTarget}
@@ -237,9 +242,10 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setCanPortal(true);
+    const timer = window.setTimeout(() => setCanPortal(true), 0);
 
     return () => {
+      window.clearTimeout(timer);
       if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
     };
   }, []);
@@ -403,13 +409,11 @@ const lbBtnStyle: React.CSSProperties = {
 /* ── Purchase Card Component ── */
 function PurchaseCard({
   purchase: p,
-  shopId,
   onPay,
   onViewPayment,
   onDelete,
 }: {
   purchase: Purchase;
-  shopId: number;
   onPay: (p: Purchase) => void;
   onViewPayment: (p: Purchase) => void;
   onDelete: (id: number) => void;

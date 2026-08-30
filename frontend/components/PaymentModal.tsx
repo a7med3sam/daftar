@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { api, Purchase, Buyer } from '@/lib/api';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, getErrorMessage } from '@/lib/utils';
 import BottomSheet from '@/components/ui/BottomSheet';
 import MobilePicker from '@/components/ui/MobilePicker';
 
@@ -57,8 +57,8 @@ export default function PaymentModal({ purchase, onSuccess, onCancel }: Props) {
       }
 
       onSuccess();
-    } catch (err: any) {
-      setError(err.message || 'حدث خطأ أثناء حفظ الدفعة');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'حدث خطأ أثناء حفظ الدفعة'));
       setLoading(false);
     }
   }

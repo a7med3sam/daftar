@@ -33,3 +33,7 @@ export function getStatusColor(status: PaymentStatus): string {
   };
   return map[status];
 }
+
+export function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}

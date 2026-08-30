@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api, Shop, Buyer, Purchase, CreatePurchasePayload } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils';
 import { useToast, ToastContainer } from '@/components/ui/Toast';
 import MobilePicker from '@/components/ui/MobilePicker';
 
@@ -136,7 +137,7 @@ export default function PurchaseForm({ purchase }: Props) {
       .then(([s, b]) => { setShops(s); setBuyers(b); })
       .catch(() => showToast('تعذّر تحميل البيانات', 'error'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [showToast]);
 
   function addProduct() {
     setProducts((prev) => [...prev, { name: '', price: '' }]);
@@ -199,8 +200,8 @@ export default function PurchaseForm({ purchase }: Props) {
       setTimeout(() => {
         router.push(`/shops/${shopId}`);
       }, 800);
-    } catch (e: any) {
-      showToast(e.message || 'حدث خطأ أثناء الحفظ', 'error');
+    } catch (e: unknown) {
+      showToast(getErrorMessage(e, 'حدث خطأ أثناء الحفظ'), 'error');
       setSaving(false);
     }
   }
