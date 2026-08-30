@@ -17,8 +17,9 @@ const cairo = Cairo({
 
 export const metadata: Metadata = {
   title: 'دفتر — تتبع المشتريات والديون',
-  description: 'تطبيق عربي بسيط لتتبع مشترياتك وديونك مع المحلات التجارية. سهل الاستخدام على الهاتف.',
+  description: 'تطبيق عربي لتتبع مشترياتك وديونك مع المحلات التجارية. سهل الاستخدام على الهاتف.',
   applicationName: 'دفتر',
+  manifest: '/favicon/manifest.webmanifest?v=2',
   appleWebApp: {
     capable: true,
     title: 'دفتر',
@@ -26,6 +27,16 @@ export const metadata: Metadata = {
   },
   formatDetection: {
     telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: '/favicon/favicon.ico' },
+      { url: '/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/favicon/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
 };
 
@@ -51,18 +62,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="theme-color" content="#5b52f0" />
-        <link rel="icon" href="/favicon/favicon.ico" sizes="any" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
-        <link rel="apple-touch-icon" href="/favicon/apple-touch-icon.png" />
-        <link rel="manifest" href="/favicon/manifest.webmanifest" />
-      </head>
       <body className={cairo.variable}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           {/* Service Worker Registration for PWA */}
