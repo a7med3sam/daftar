@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 220" width="750" height="330">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@800&amp;display=swap');
+    .word { font-family: 'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', 'Segoe UI', sans-serif; font-weight: 800; }
+  </style>
+
+  <rect width="500" height="220" fill="#FFFFFF"/>
+
+  <text x="250" y="135" direction="rtl" text-anchor="middle" class="word"
+        font-size="110" fill="#14284F">دفتر</text>
+
+  <!-- subtle ledger-line accent -->
+  <rect x="210" y="160" width="90" height="8" rx="4" fill="#12B8A0"/>
+</svg>

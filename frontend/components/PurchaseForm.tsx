@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { api, Shop, Buyer, Purchase, CreatePurchasePayload, PaymentStatus } from '@/lib/api';
+import { api, Shop, Buyer, Purchase, CreatePurchasePayload } from '@/lib/api';
 
 interface Props {
   purchase?: Purchase;
@@ -52,19 +52,18 @@ export default function PurchaseForm({ purchase }: Props) {
     e.preventDefault();
     setError('');
 
-    if (!shopId || !buyerId || !purchaseDate || !totalAmount) {
-      return setError('يرجى ملء جميع الحقول المطلوبة');
-    }
+    if (!shopId)       return setError('يرجى اختيار المحل');
+    if (!buyerId)      return setError('يرجى اختيار المشتري');
+    if (!purchaseDate) return setError('يرجى تحديد تاريخ الشراء');
+    if (!totalAmount)  return setError('يرجى إدخال المبلغ الإجمالي');
 
     const total = Number(totalAmount);
-    const paid = Number(paidAmount);
+    const paid  = Number(paidAmount);
 
-    if (paid > total) {
-      return setError('المبلغ المدفوع لا يمكن أن يتجاوز الإجمالي');
-    }
+    if (total <= 0) return setError('المبلغ يجب أن يكون أكبر من صفر');
+    if (paid > total) return setError('المبلغ المدفوع لا يمكن أن يتجاوز الإجمالي');
 
     setSaving(true);
-
     try {
       const payload: CreatePurchasePayload = {
         shopId: Number(shopId),
@@ -73,7 +72,7 @@ export default function PurchaseForm({ purchase }: Props) {
         totalAmount: total,
         paidAmount: paid,
         paidById: isPartiallyOrFullyPaid && paidById ? Number(paidById) : undefined,
-        paidAt: isPartiallyOrFullyPaid && paidAt ? paidAt : undefined,
+        paidAt:   isPartiallyOrFullyPaid && paidAt  ? paidAt            : undefined,
       };
 
       let saved: Purchase;
@@ -83,7 +82,6 @@ export default function PurchaseForm({ purchase }: Props) {
         saved = await api.purchases.create(payload);
       }
 
-      // Upload images if any
       if (files.length > 0) {
         await api.purchases.uploadImages(saved.id, files);
       }
@@ -96,151 +94,211 @@ export default function PurchaseForm({ purchase }: Props) {
     }
   }
 
+  function removeFile(index: number) {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  }
+
   if (loading) {
-    return <div className="loading-center"><span className="spinner" /></div>;
+    return (
+      <div className="loading-center">
+        <span className="spinner" />
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} noValidate>
       {error && <div className="alert alert-error">{error}</div>}
 
-      {/* Images - PWA Optimized */}
-      <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-        <label className="form-label" style={{ fontSize: '1.1rem', fontWeight: 600 }}>📸 إضافة صور المنتجات</label>
-        
-        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
-          <button 
-            type="button" 
-            className="btn btn-secondary" 
-            style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-secondary)', border: '2px dashed var(--border)' }}
-            onClick={() => cameraRef.current?.click()}
-          >
-            <span style={{ fontSize: '1.5rem' }}>📷</span>
-            <span style={{ fontSize: '0.9rem' }}>فتح الكاميرا</span>
-          </button>
-          <button 
-            type="button" 
-            className="btn btn-secondary" 
-            style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-secondary)', border: '2px dashed var(--border)' }}
-            onClick={() => fileRef.current?.click()}
-          >
-            <span style={{ fontSize: '1.5rem' }}>🖼️</span>
-            <span style={{ fontSize: '0.9rem' }}>اختر من المعرض</span>
-          </button>
-        </div>
+      {/* ── Step 1: Shop & Buyer ── */}
+      <p className="section-label" style={{ marginTop: 0 }}>بيانات الشراء</p>
 
+      <div className="form-group">
+        <label className="form-label" htmlFor="pf-shop">المحل *</label>
+        <select
+          id="pf-shop"
+          className="form-control"
+          value={shopId}
+          onChange={e => setShopId(e.target.value)}
+          required
+        >
+          <option value="">— اختر المحل —</option>
+          {shops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label" htmlFor="pf-buyer">المشتري *</label>
+        <select
+          id="pf-buyer"
+          className="form-control"
+          value={buyerId}
+          onChange={e => setBuyerId(e.target.value)}
+          required
+        >
+          <option value="">— اختر المشتري —</option>
+          {buyers.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+        </select>
+      </div>
+
+      {/* ── Step 2: Amount & Date ── */}
+      <div className="form-group">
+        <label className="form-label" htmlFor="pf-amount">المبلغ الإجمالي (ج.م) *</label>
         <input
-          ref={cameraRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          style={{ display: 'none' }}
-          onChange={e => setFiles(prev => [...prev, ...Array.from(e.target.files ?? [])])}
+          id="pf-amount"
+          type="text"
+          inputMode="decimal"
+          className="form-control"
+          value={totalAmount}
+          onChange={e => setTotalAmount(e.target.value)}
+          placeholder="0.00"
+          required
+          style={{ fontSize: '1.1rem', fontWeight: 600 }}
         />
-        
+      </div>
+
+      <div className="form-group">
+        <label className="form-label" htmlFor="pf-date">تاريخ الشراء *</label>
         <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          multiple
-          style={{ display: 'none' }}
-          onChange={e => setFiles(prev => [...prev, ...Array.from(e.target.files ?? [])])}
+          id="pf-date"
+          type="date"
+          className="form-control"
+          value={purchaseDate}
+          onChange={e => setPurchaseDate(e.target.value)}
+          required
+        />
+      </div>
+
+      {/* ── Step 3: Payment info ── */}
+      <p className="section-label">بيانات الدفع</p>
+
+      <div className="form-group">
+        <label className="form-label" htmlFor="pf-paid">المبلغ المدفوع (ج.م)</label>
+        <input
+          id="pf-paid"
+          type="text"
+          inputMode="decimal"
+          className="form-control"
+          value={paidAmount}
+          onChange={e => setPaidAmount(e.target.value)}
+          placeholder="0.00"
         />
 
-        {files.length > 0 && (
-          <div style={{ 
-            display: 'flex', 
-            gap: '0.5rem', 
-            flexWrap: 'wrap', 
-            padding: '0.75rem', 
-            background: 'var(--bg-secondary)', 
-            borderRadius: 'var(--radius)',
-            border: '1px solid var(--border)'
-          }}>
-            {files.map((file, i) => (
-              <div key={i} style={{ position: 'relative', width: '70px', height: '70px' }}>
-                <img 
-                  src={URL.createObjectURL(file)} 
-                  alt="Preview" 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius)' }} 
-                />
+        {/* Quick amounts */}
+        {totalAmount && Number(totalAmount) > 0 && (
+          <div className="quick-amounts">
+            {[0, 50, 100, 200].map(val => {
+              const label = val === 0 ? 'صفر' : `${val}`;
+              return (
                 <button
+                  key={val}
                   type="button"
-                  onClick={() => setFiles(prev => prev.filter((_, index) => index !== i))}
-                  style={{
-                    position: 'absolute', top: -5, right: -5, 
-                    background: 'var(--danger)', color: 'white', 
-                    border: 'none', borderRadius: '50%', 
-                    width: '22px', height: '22px', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                  }}
+                  className={`quick-amount-btn ${Number(paidAmount) === val ? 'active' : ''}`}
+                  onClick={() => setPaidAmount(val.toString())}
                 >
-                  ✕
+                  {label}
                 </button>
-              </div>
-            ))}
+              );
+            })}
+            <button
+              type="button"
+              className={`quick-amount-btn ${paidAmount === totalAmount ? 'active' : ''}`}
+              onClick={() => setPaidAmount(totalAmount)}
+            >
+              الكل
+            </button>
           </div>
         )}
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label className="form-label">المحل *</label>
-          <select className="form-control" value={shopId} onChange={e => setShopId(e.target.value)} required>
-            <option value="">— اختر محلًا —</option>
-            {shops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        </div>
-        <div className="form-group">
-          <label className="form-label">المشتري *</label>
-          <select className="form-control" value={buyerId} onChange={e => setBuyerId(e.target.value)} required>
-            <option value="">— اختر مشتريًا —</option>
-            {buyers.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-group">
-          <label className="form-label">تاريخ الشراء *</label>
-          <input type="date" className="form-control" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} required />
-        </div>
-        <div className="form-group">
-          <label className="form-label">المبلغ الإجمالي (ج.م) *</label>
-          <input type="number" className="form-control" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} min="0.01" step="0.01" placeholder="0.00" required />
-        </div>
-      </div>
-
-      {/* Payment Fields */}
-      <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '1.25rem', marginBottom: '1.25rem' }}>
-        <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '1rem' }}>💳 بيانات الدفع</h3>
-
-        <div className="form-group">
-          <label className="form-label">المبلغ المدفوع (ج.م)</label>
-          <input type="number" className="form-control" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} min="0" step="0.01" placeholder="0.00" />
-        </div>
-
-        {isPartiallyOrFullyPaid && (
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">دفع بواسطة</label>
-              <select className="form-control" value={paidById} onChange={e => setPaidById(e.target.value)}>
-                <option value="">— اختر —</option>
-                {buyers.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">تاريخ الدفع</label>
-              <input type="date" className="form-control" value={paidAt} onChange={e => setPaidAt(e.target.value)} />
-            </div>
+      {isPartiallyOrFullyPaid && (
+        <>
+          <div className="form-group">
+            <label className="form-label" htmlFor="pf-paidby">دفع بواسطة</label>
+            <select
+              id="pf-paidby"
+              className="form-control"
+              value={paidById}
+              onChange={e => setPaidById(e.target.value)}
+            >
+              <option value="">— اختر —</option>
+              {buyers.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
           </div>
-        )}
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="pf-paidat">تاريخ الدفع</label>
+            <input
+              id="pf-paidat"
+              type="date"
+              className="form-control"
+              value={paidAt}
+              onChange={e => setPaidAt(e.target.value)}
+            />
+          </div>
+        </>
+      )}
+
+      {/* ── Step 4: Images ── */}
+      <p className="section-label">صور المنتجات (اختياري)</p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+        <button
+          type="button"
+          className="upload-zone"
+          onClick={() => cameraRef.current?.click()}
+          aria-label="التقاط صورة بالكاميرا"
+        >
+          <span className="upload-zone-icon">📷</span>
+          <span>الكاميرا</span>
+        </button>
+        <button
+          type="button"
+          className="upload-zone"
+          onClick={() => fileRef.current?.click()}
+          aria-label="اختيار صورة من المعرض"
+        >
+          <span className="upload-zone-icon">🖼️</span>
+          <span>المعرض</span>
+        </button>
       </div>
 
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        style={{ display: 'none' }}
+        onChange={e => setFiles(prev => [...prev, ...Array.from(e.target.files ?? [])])}
+      />
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        style={{ display: 'none' }}
+        onChange={e => setFiles(prev => [...prev, ...Array.from(e.target.files ?? [])])}
+      />
 
+      {files.length > 0 && (
+        <div className="image-preview-grid" style={{ marginBottom: '1rem' }}>
+          {files.map((file, i) => (
+            <div key={i} className="image-preview-item">
+              <img src={URL.createObjectURL(file)} alt="معاينة" />
+              <button
+                type="button"
+                className="image-remove-btn"
+                onClick={() => removeFile(i)}
+                aria-label="حذف الصورة"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
-      {/* Existing Images (edit mode) */}
+      {/* Existing images (edit mode) */}
       {purchase?.images && purchase.images.length > 0 && (
         <div className="form-group">
           <label className="form-label">الصور الحالية</label>
@@ -252,17 +310,26 @@ export default function PurchaseForm({ purchase }: Props) {
         </div>
       )}
 
-      <div className="modal-footer" style={{ border: 'none', padding: 0, justifyContent: 'flex-start', gap: '0.75rem', marginTop: '1.5rem' }}>
+      {/* ── Actions ── */}
+      <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
         <button
           type="button"
           className="btn btn-secondary"
           onClick={() => router.back()}
           disabled={saving}
+          style={{ flex: 1 }}
         >
           إلغاء
         </button>
-        <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? <><span className="spinner" /> جارٍ الحفظ...</> : (purchase ? 'حفظ التغييرات' : 'إضافة الشراء')}
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={saving}
+          style={{ flex: 2 }}
+        >
+          {saving
+            ? <><span className="spinner spinner-sm" /> جارٍ الحفظ...</>
+            : (purchase ? 'حفظ التغييرات' : '✅ إضافة الفاتورة')}
         </button>
       </div>
     </form>

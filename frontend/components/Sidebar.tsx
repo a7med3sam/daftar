@@ -17,11 +17,11 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <Link href="/" className="sidebar-logo">
-        <span className="logo-icon">📒</span>
+        <span className="logo-icon" aria-hidden="true">📒</span>
         دفتر
       </Link>
 
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" aria-label="التنقل الرئيسي">
         {navItems.map((item) => {
           const isActive =
             item.href === '/'
@@ -32,8 +32,9 @@ export default function Sidebar() {
               key={item.href}
               href={item.href}
               className={`nav-link ${isActive ? 'active' : ''}`}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-icon" aria-hidden="true">{item.icon}</span>
               {item.label}
             </Link>
           );
@@ -48,7 +49,7 @@ export default function Sidebar() {
         alignItems: 'center',
         justifyContent: 'space-between',
       }}>
-        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>
           دفتر v1.0
         </p>
         <ThemeToggle />

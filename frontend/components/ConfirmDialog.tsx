@@ -1,11 +1,15 @@
 'use client';
 
+import BottomSheet from '@/components/ui/BottomSheet';
+
 interface Props {
   title: string;
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
   loading?: boolean;
+  confirmLabel?: string;
+  confirmVariant?: 'danger' | 'primary';
 }
 
 export default function ConfirmDialog({
@@ -14,23 +18,39 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
   loading,
+  confirmLabel = 'حذف',
+  confirmVariant = 'danger',
 }: Props) {
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal" style={{ maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3 className="modal-title">⚠️ {title}</h3>
-        </div>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{message}</p>
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onCancel} disabled={loading}>
+    <BottomSheet
+      isOpen
+      onClose={onCancel}
+      footer={
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button
+            className="btn btn-secondary"
+            onClick={onCancel}
+            disabled={loading}
+            style={{ flex: 1 }}
+          >
             إلغاء
           </button>
-          <button className="btn btn-danger" onClick={onConfirm} disabled={loading}>
-            {loading ? <span className="spinner" /> : 'حذف'}
+          <button
+            className={`btn btn-${confirmVariant}`}
+            onClick={onConfirm}
+            disabled={loading}
+            style={{ flex: 1 }}
+            id="confirm-dialog-btn"
+          >
+            {loading ? <span className="spinner spinner-sm" /> : confirmLabel}
           </button>
         </div>
+      }
+    >
+      <div className="confirm-dialog-content" style={{ padding: 0 }}>
+        <p className="confirm-dialog-title">⚠️ {title}</p>
+        <p className="confirm-dialog-message">{message}</p>
       </div>
-    </div>
+    </BottomSheet>
   );
 }

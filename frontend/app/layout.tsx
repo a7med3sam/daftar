@@ -4,17 +4,28 @@ import { ThemeProvider } from 'next-themes';
 import './globals.css';
 import Sidebar from '@/components/Sidebar';
 import MobileNav from '@/components/MobileNav';
+import MobileHeader from '@/components/navigation/MobileHeader';
+import FAB from '@/components/ui/FAB';
 
 const cairo = Cairo({
   subsets: ['arabic', 'latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700', '800'],
   variable: '--font-cairo',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: 'دفتر — تتبع المشتريات والديون',
-  description: 'تطبيق بسيط لتتبع المشتريات والديون مع المحلات التجارية',
+  description: 'تطبيق عربي بسيط لتتبع مشترياتك وديونك مع المحلات التجارية. سهل الاستخدام على الهاتف.',
+  viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
+  themeColor: '#5b52f0',
 };
+
+const fabActions = [
+  { label: 'فاتورة جديدة', icon: '🧾', href: '/purchases/new' },
+  { label: 'محل جديد',     icon: '🏪', href: '/shops?action=new' },
+  { label: 'مشترٍ جديد',  icon: '👤', href: '/buyers?action=new' },
+];
 
 export default function RootLayout({
   children,
@@ -23,13 +34,35 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <body className={`${cairo.variable} font-cairo`}>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="theme-color" content="#5b52f0" />
+      </head>
+      <body className={cairo.variable}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          {/* Mobile header — sticky top, mobile only */}
+          <MobileHeader />
+
           <div className="app-layout">
+            {/* Desktop sidebar */}
             <Sidebar />
-            <main className="main-content">{children}</main>
+
+            {/* Main content */}
+            <main className="main-content" id="main-content">
+              <div style={{ padding: '1.25rem', maxWidth: '900px', margin: '0 auto' }}>
+                {children}
+              </div>
+            </main>
+
+            {/* Mobile bottom navigation */}
             <MobileNav />
           </div>
+
+          {/* FAB — mobile only via CSS */}
+          <FAB actions={fabActions} />
         </ThemeProvider>
       </body>
     </html>

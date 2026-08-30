@@ -2,13 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import ThemeToggle from './ThemeToggle';
 
 const navItems = [
-  { href: '/',             label: 'الرئيسية', icon: '🏠' },
-  { href: '/shops',        label: 'المحلات',  icon: '🏪' },
-  { href: '/buyers',       label: 'المشترون', icon: '👥' },
-  { href: '/purchases/new', label: 'شراء جديد', icon: '➕' },
+  { href: '/',       label: 'الرئيسية', icon: '🏠' },
+  { href: '/shops',  label: 'المحلات',  icon: '🏪' },
+  { href: '/buyers', label: 'المشترون', icon: '👥' },
 ];
 
 export default function MobileNav() {
@@ -27,17 +25,15 @@ export default function MobileNav() {
               key={item.href}
               href={item.href}
               className={`mobile-nav-item ${isActive ? 'active' : ''}`}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <span className="mobile-nav-icon">{item.icon}</span>
+              <span className="mobile-nav-icon" aria-hidden="true">
+                {item.icon}
+              </span>
               <span>{item.label}</span>
             </Link>
           );
         })}
-
-        {/* Theme toggle in mobile nav */}
-        <div className="mobile-nav-item">
-          <ThemeToggle />
-        </div>
       </div>
     </nav>
   );

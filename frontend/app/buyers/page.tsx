@@ -1,21 +1,38 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { api, Buyer } from '@/lib/api';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import BottomSheet from '@/components/ui/BottomSheet';
+import { SkeletonList } from '@/components/ui/Skeleton';
 
 export default function BuyersPage() {
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
   const [modal, setModal] = useState<null | 'create' | Buyer>(null);
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<Buyer | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Auto-open create sheet if ?action=new
   useEffect(() => {
-    api.buyers.list()
+    if (searchParams.get('action') === 'new') {
+      openCreate();
+      router.replace('/buyers');
+    }
+  }, [searchParams, router]);
+
+  useEffect(() => {
+    api.buyers
+      .list()
       .then(setBuyers)
       .catch(() => setError('تعذّر تحميل المشترين'))
       .finally(() => setLoading(false));
@@ -23,20 +40,21 @@ export default function BuyersPage() {
 
   function openCreate() {
     setName('');
+    setFormError('');
     setModal('create');
-    setError('');
   }
 
   function openEdit(buyer: Buyer) {
     setName(buyer.name);
+    setFormError('');
     setModal(buyer);
-    setError('');
   }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return setError('الاسم مطلوب');
+    if (!name.trim()) return setFormError('الاسم مطلوب');
     setSaving(true);
+    setFormError('');
     try {
       if (modal && modal !== 'create') {
         const updated = await api.buyers.update((modal as Buyer).id, { name: name.trim() });
@@ -47,7 +65,7 @@ export default function BuyersPage() {
       }
       setModal(null);
     } catch (e: any) {
-      setError(e.message);
+      setFormError(e.message);
     } finally {
       setSaving(false);
     }
@@ -67,82 +85,168 @@ export default function BuyersPage() {
     }
   }
 
+  const filtered = buyers.filter(b =>
+    !search.trim() || b.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div>
-      <div className="page-header">
-        <h1 className="page-title">المشترون</h1>
-        <button className="btn btn-primary" onClick={openCreate}>➕ إضافة مشترٍ</button>
+      {/* Desktop header */}
+      <div className="page-header desktop-only">
+        <h1 className="page-title">👥 المشترون</h1>
+        <button className="btn btn-primary" onClick={openCreate}>
+          ➕ إضافة مشترٍ
+        </button>
       </div>
+
+      {/* Mobile title */}
+      <h1 className="page-title mobile-only" style={{ marginBottom: '1rem' }}>
+        المشترون
+      </h1>
 
       {error && <div className="alert alert-error">{error}</div>}
 
+      {/* Search */}
+      <div className="search-wrapper">
+        <span className="search-icon" aria-hidden="true">🔍</span>
+        <input
+          className="search-input"
+          type="search"
+          placeholder="ابحث باسم المشتري..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          aria-label="البحث في المشترين"
+        />
+      </div>
+
       {loading ? (
-        <div className="loading-center"><span className="spinner" /></div>
-      ) : buyers.length === 0 ? (
+        <SkeletonList count={5} />
+      ) : filtered.length === 0 ? (
         <div className="card">
           <div className="empty-state">
-            <div className="empty-icon">👥</div>
-            <p>لا يوجد مشترون بعد</p>
+            <span className="empty-icon">👥</span>
+            <p className="empty-title">
+              {search ? 'لا توجد نتائج' : 'لا يوجد مشترون بعد'}
+            </p>
+            <p className="empty-desc">
+              {search ? 'جرب كلمة بحث أخرى' : 'أضف أسماء المشترين لتتبع من يدفع'}
+            </p>
+            {!search && (
+              <button className="btn btn-primary" onClick={openCreate}>
+                ➕ إضافة مشترٍ
+              </button>
+            )}
           </div>
         </div>
       ) : (
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>الاسم</th>
-                <th>إجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {buyers.map((buyer, i) => (
-                <tr key={buyer.id}>
-                  <td style={{ color: 'var(--text-muted)', width: 50 }}>{i + 1}</td>
-                  <td style={{ fontWeight: 600 }}>{buyer.name}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="btn-icon" onClick={() => openEdit(buyer)}>✏️</button>
-                      <button className="btn-icon" onClick={() => setDeleteTarget(buyer)} style={{ color: 'var(--danger)' }}>🗑️</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        <div>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.75rem', fontWeight: 500 }}>
+            {filtered.length} مشترٍ{filtered.length !== buyers.length ? ` من ${buyers.length}` : ''}
+          </p>
+          {filtered.map(buyer => (
+            <div
+              key={buyer.id}
+              className="list-card"
+              style={{ marginBottom: '0.6rem', cursor: 'default' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+                {/* Avatar */}
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
+                  background: 'var(--accent-light)',
+                  color: 'var(--accent)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.1rem',
+                  fontWeight: 800,
+                  flexShrink: 0,
+                  letterSpacing: '-0.02em',
+                }} aria-hidden="true">
+                  {buyer.name.charAt(0)}
+                </div>
 
-      {modal && (
-        <div className="modal-overlay" onClick={() => setModal(null)}>
-          <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">{modal === 'create' ? 'إضافة مشترٍ' : 'تعديل الاسم'}</h2>
-              <button className="btn-icon" onClick={() => setModal(null)}>✕</button>
+                {/* Name */}
+                <span style={{
+                  flex: 1,
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  color: 'var(--text-primary)',
+                }}>
+                  {buyer.name}
+                </span>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  <button
+                    className="btn-icon"
+                    onClick={() => openEdit(buyer)}
+                    aria-label={`تعديل ${buyer.name}`}
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    className="btn-icon"
+                    onClick={() => setDeleteTarget(buyer)}
+                    style={{ color: 'var(--danger)' }}
+                    aria-label={`حذف ${buyer.name}`}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
             </div>
-            <form onSubmit={handleSave}>
-              {error && <div className="alert alert-error">{error}</div>}
-              <div className="form-group">
-                <label className="form-label">الاسم *</label>
-                <input
-                  className="form-control"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="اسم المشتري"
-                  autoFocus
-                />
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setModal(null)} disabled={saving}>إلغاء</button>
-                <button type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? <span className="spinner" /> : (modal === 'create' ? 'إضافة' : 'حفظ')}
-                </button>
-              </div>
-            </form>
-          </div>
+          ))}
         </div>
       )}
 
+      {/* Add/Edit Bottom Sheet */}
+      <BottomSheet
+        isOpen={!!modal}
+        onClose={() => setModal(null)}
+        title={modal === 'create' ? 'إضافة مشترٍ جديد' : 'تعديل الاسم'}
+      >
+        <form onSubmit={handleSave} noValidate>
+          {formError && <div className="alert alert-error">{formError}</div>}
+          <div className="form-group">
+            <label className="form-label" htmlFor="buyer-name">الاسم *</label>
+            <input
+              id="buyer-name"
+              className="form-control"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="اسم المشتري"
+              autoFocus
+              autoComplete="name"
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setModal(null)}
+              disabled={saving}
+              style={{ flex: 1 }}
+            >
+              إلغاء
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={saving}
+              style={{ flex: 2 }}
+            >
+              {saving
+                ? <><span className="spinner spinner-sm" /> جارٍ الحفظ...</>
+                : (modal === 'create' ? 'إضافة' : 'حفظ التغييرات')}
+            </button>
+          </div>
+        </form>
+      </BottomSheet>
+
+      {/* Confirm Delete */}
       {deleteTarget && (
         <ConfirmDialog
           title="حذف المشتري"
