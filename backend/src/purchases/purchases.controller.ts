@@ -77,13 +77,13 @@ export class PurchasesController {
     @UploadedFiles() files: Express.Multer.File[],
     @Query('isReceipt') isReceiptQuery?: string,
   ) {
-    const results: any[] = [];
     const isReceipt = isReceiptQuery === 'true';
-    for (const file of files) {
+    const uploadPromises = files.map(async (file) => {
       const url = await this.cloudinaryService.uploadImage(file.buffer);
-      const image = await this.purchasesService.addImageUrl(id, url, isReceipt);
-      results.push(image);
-    }
+      return this.purchasesService.addImageUrl(id, url, isReceipt);
+    });
+    
+    const results = await Promise.all(uploadPromises);
     return results;
   }
 
