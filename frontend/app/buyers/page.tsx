@@ -20,6 +20,8 @@ function BuyersContent() {
   const [deleting, setDeleting] = useState(false);
   const [uploadingId, setUploadingId] = useState<number | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [avatarActionsTarget, setAvatarActionsTarget] = useState<Buyer | null>(null);
+  const [viewImageTarget, setViewImageTarget] = useState<Buyer | null>(null);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -101,6 +103,7 @@ function BuyersContent() {
 
   async function handleImageUpload(buyer: Buyer, file: File) {
     setUploadingId(buyer.id);
+    setAvatarActionsTarget(null);
     try {
       const { imageUrl } = await api.buyers.uploadImage(buyer.id, file);
       setBuyers(buyers.map(b => b.id === buyer.id ? { ...b, imageUrl } : b));
@@ -178,9 +181,7 @@ function BuyersContent() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
               {/* Avatar — shows real photo only */}
               {buyer.imageUrl && (
-                <label
-                  htmlFor={`avatar-upload-${buyer.id}`}
-                  title="انقر لتغيير الصورة"
+                <div
                   style={{
                     width: 48,
                     height: 48,
@@ -195,18 +196,31 @@ function BuyersContent() {
                     border: '2px solid var(--border)',
                     position: 'relative',
                   }}
-                  aria-label={`تغيير صورة ${buyer.name}`}
                 >
-                  {uploadingId === buyer.id ? (
-                    <span className="spinner spinner-sm" />
-                  ) : (
-                    <img src={buyer.imageUrl} alt={buyer.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setAvatarActionsTarget(buyer)}
+                    title="خيارات الصورة"
+                    aria-label={`خيارات صورة ${buyer.name}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      border: 0,
+                      padding: 0,
+                      background: 'transparent',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {uploadingId === buyer.id ? (
+                      <span className="spinner spinner-sm" />
+                    ) : (
+                      <img src={buyer.imageUrl} alt={buyer.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    )}
+                  </button>
                   <input
                     id={`avatar-upload-${buyer.id}`}
                     type="file"
                     accept="image/*"
-                    capture="user"
                     style={{ display: 'none' }}
                     onChange={(e) => {
                       const file = e.target.files?.[0];
@@ -214,7 +228,7 @@ function BuyersContent() {
                       e.target.value = '';
                     }}
                   />
-                </label>
+                </div>
               )}
 
                 {/* Name */}
@@ -289,7 +303,6 @@ function BuyersContent() {
               id="new-buyer-image"
               type="file"
               accept="image/*"
-              capture="user"
               style={{ display: 'none' }}
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -334,6 +347,78 @@ function BuyersContent() {
         </form>
       </BottomSheet>
 
+      <BottomSheet
+        isOpen={!!avatarActionsTarget}
+        onClose={() => setAvatarActionsTarget(null)}
+        title="صورة المشتري"
+      >
+        {avatarActionsTarget && (
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                setViewImageTarget(avatarActionsTarget);
+                setAvatarActionsTarget(null);
+              }}
+            >
+              عرض الصورة
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => {
+                document.getElementById(`avatar-upload-${avatarActionsTarget.id}`)?.click();
+              }}
+              disabled={uploadingId === avatarActionsTarget.id}
+            >
+              {uploadingId === avatarActionsTarget.id
+                ? <><span className="spinner spinner-sm" /> جارٍ الرفع...</>
+                : 'تغيير الصورة'}
+            </button>
+          </div>
+        )}
+      </BottomSheet>
+
+      {viewImageTarget?.imageUrl && (
+        <div
+          onClick={() => setViewImageTarget(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 2000,
+            background: 'rgba(0,0,0,0.92)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+          }}
+        >
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setViewImageTarget(null);
+            }}
+            aria-label="إغلاق"
+            style={{
+              ...lbCloseStyle,
+              position: 'fixed',
+              top: 'calc(1rem + env(safe-area-inset-top))',
+              left: '1rem',
+            }}
+          >
+            ✕
+          </button>
+          <img
+            src={viewImageTarget.imageUrl}
+            alt={viewImageTarget.name}
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '94vw', maxHeight: '82dvh', objectFit: 'contain', borderRadius: 12 }}
+          />
+        </div>
+      )}
+
       {/* Confirm Delete */}
       {deleteTarget && (
         <ConfirmDialog
@@ -347,6 +432,21 @@ function BuyersContent() {
     </div>
   );
 }
+
+const lbCloseStyle: React.CSSProperties = {
+  width: 44,
+  height: 44,
+  borderRadius: '50%',
+  border: 0,
+  background: 'rgba(255,255,255,0.14)',
+  color: 'white',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '1rem',
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+};
 
 export default function BuyersPage() {
   return (
