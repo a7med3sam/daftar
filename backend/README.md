@@ -25,6 +25,11 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## API Documentation
+
+Swagger API documentation is available at `/api/docs` when the server is running (endpoints are collapsed by default).
+Example: `http://localhost:3001/api/docs`
+
 ## Project setup
 
 ```bash
