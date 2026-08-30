@@ -6,6 +6,7 @@ import Sidebar from '@/components/Sidebar';
 import MobileNav from '@/components/MobileNav';
 import MobileHeader from '@/components/navigation/MobileHeader';
 import FAB from '@/components/ui/FAB';
+import PWARegister from '@/components/PWARegister';
 
 const cairo = Cairo({
   subsets: ['arabic', 'latin'],
@@ -17,6 +18,15 @@ const cairo = Cairo({
 export const metadata: Metadata = {
   title: 'دفتر — تتبع المشتريات والديون',
   description: 'تطبيق عربي بسيط لتتبع مشترياتك وديونك مع المحلات التجارية. سهل الاستخدام على الهاتف.',
+  applicationName: 'دفتر',
+  appleWebApp: {
+    capable: true,
+    title: 'دفتر',
+    statusBarStyle: 'default',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export const viewport: Viewport = {
@@ -55,6 +65,9 @@ export default function RootLayout({
       </head>
       <body className={cairo.variable}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          {/* Service Worker Registration for PWA */}
+          <PWARegister />
+          
           {/* Mobile header — sticky top, mobile only */}
           <MobileHeader />
 
