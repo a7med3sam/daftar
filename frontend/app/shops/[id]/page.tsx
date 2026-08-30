@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { api, ShopWithStats } from '@/lib/api';
+import { api, ShopWithStats, Purchase } from '@/lib/api';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import StatusBadge from '@/components/StatusBadge';
 import ImageGallery from '@/components/ImageGallery';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import PaymentModal from '@/components/PaymentModal';
+import PaymentDetailsModal from '@/components/PaymentDetailsModal';
 
 export default function ShopDetailPage() {
   const { id } = useParams();
@@ -18,7 +19,8 @@ export default function ShopDetailPage() {
   const [error, setError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [paymentTarget, setPaymentTarget] = useState<any | null>(null);
+  const [paymentTarget, setPaymentTarget] = useState<Purchase | null>(null);
+  const [paymentDetailsTarget, setPaymentDetailsTarget] = useState<Purchase | null>(null);
 
   async function load() {
     try {
@@ -121,17 +123,8 @@ export default function ShopDetailPage() {
                 {shop.purchases.map(p => (
                   <tr key={p.id}>
                     <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <ImageGallery images={p.images.filter(i => !i.isReceipt)} />
-                        {p.images.some(i => i.isReceipt) && (
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                            إيصالات سداد:
-                            <div style={{ marginTop: '0.25rem' }}>
-                              <ImageGallery images={p.images.filter(i => i.isReceipt)} />
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      {/* Product images only (no receipts) */}
+                      <ImageGallery images={p.images.filter(i => !i.isReceipt)} />
                     </td>
                     <td style={{ fontWeight: 600 }}>{p.buyer?.name ?? '—'}</td>
                     <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
@@ -139,7 +132,25 @@ export default function ShopDetailPage() {
                     </td>
                     <td style={{ fontWeight: 600 }}>{formatCurrency(p.totalAmount)}</td>
                     <td><StatusBadge status={p.paymentStatus} /></td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{p.paidBy?.name ?? '—'}</td>
+                    <td>
+                      {p.paidBy ? (
+                        <button
+                          onClick={() => setPaymentDetailsTarget(p)}
+                          style={{
+                            background: 'none', border: 'none',
+                            color: 'var(--accent)', cursor: 'pointer',
+                            fontFamily: 'inherit', fontSize: '0.9rem',
+                            fontWeight: 600, padding: '0.2rem 0',
+                            textDecoration: 'underline', textDecorationStyle: 'dotted',
+                          }}
+                          title="عرض تفاصيل الدفع"
+                        >
+                          {p.paidBy.name}
+                        </button>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }}>—</span>
+                      )}
+                    </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {p.paidAt ? formatDate(p.paidAt) : '—'}
                     </td>
@@ -175,6 +186,13 @@ export default function ShopDetailPage() {
           purchase={paymentTarget}
           onSuccess={() => { setPaymentTarget(null); load(); }}
           onCancel={() => setPaymentTarget(null)}
+        />
+      )}
+
+      {paymentDetailsTarget && (
+        <PaymentDetailsModal
+          purchase={paymentDetailsTarget}
+          onClose={() => setPaymentDetailsTarget(null)}
         />
       )}
     </div>
