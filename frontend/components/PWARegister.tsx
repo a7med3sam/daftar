@@ -6,9 +6,18 @@ import { useEffect, useState } from 'react';
 function registerSW() {
   if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          registration.update().catch(() => {});
+        })
+        .catch(() => {});
     });
   }
+}
+
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean;
 }
 
 // ── PWA Splash Screen ──────────────────────────────────────────
@@ -114,10 +123,10 @@ export default function PWARegister() {
     // Show splash only in standalone PWA mode
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true;
+      (window.navigator as NavigatorWithStandalone).standalone === true;
 
     if (isStandalone) {
-      setShowSplash(true);
+      window.setTimeout(() => setShowSplash(true), 0);
     }
   }, []);
 

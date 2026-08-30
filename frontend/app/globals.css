@@ -1,6 +1,3 @@
-/* ── Google Fonts ── */
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -109,7 +106,7 @@ html {
 }
 
 body {
-  font-family: 'Cairo', sans-serif;
+  font-family: var(--font-cairo), sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   direction: rtl;
@@ -1526,6 +1523,74 @@ tbody tr:hover {
   background: var(--success-light);
   color: var(--success);
   border: 1.5px solid rgba(22, 163, 74, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   OFFLINE PAGE
+═══════════════════════════════════════════════════════════ */
+.offline-page {
+  min-height: calc(100dvh - 2.5rem);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.offline-panel {
+  width: min(100%, 420px);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.offline-mark {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 1.25rem;
+  background: var(--warning-light);
+  color: var(--warning);
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.offline-title {
+  color: var(--text-primary);
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+.offline-message {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.offline-retry {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-weight: 800;
+  transition: background var(--transition), transform var(--transition);
+}
+
+.offline-retry:hover {
+  background: var(--accent-hover);
+}
+
+.offline-retry:active {
+  transform: scale(0.98);
 }
 
 /* ═══════════════════════════════════════════════════════════
