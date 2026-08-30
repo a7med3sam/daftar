@@ -36,10 +36,10 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document, {
     customCssUrl:
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.32.1/swagger-ui.min.css',
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.32.13/swagger-ui.css',
     customJs: [
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.32.1/swagger-ui-bundle.min.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.32.1/swagger-ui-standalone-preset.min.js',
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.32.13/swagger-ui-bundle.js',
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.32.13/swagger-ui-standalone-preset.js',
     ],
     swaggerOptions: {
       docExpansion: 'none',
