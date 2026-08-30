@@ -42,6 +42,14 @@ export const api = {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
+    uploadImage: (id: number, file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return fetch(`${BASE_URL}/buyers/${id}/image`, {
+        method: 'POST',
+        body: formData,
+      }).then((r) => r.json() as Promise<{ imageUrl: string }>);
+    },
     delete: (id: number) =>
       request<void>(`/buyers/${id}`, { method: 'DELETE' }),
   },
@@ -99,6 +107,7 @@ export interface ShopWithStats extends Shop {
 export interface Buyer {
   id: number;
   name: string;
+  imageUrl?: string | null;
   createdAt: string;
 }
 
@@ -126,6 +135,8 @@ export interface Purchase {
   buyer?: Buyer;
   paidBy?: Buyer;
   images: PurchaseImage[];
+  description?: string;
+  items?: { name: string; price: string | number }[];
 }
 
 export interface CreatePurchasePayload {
@@ -137,6 +148,8 @@ export interface CreatePurchasePayload {
   paymentStatus?: PaymentStatus;
   paidById?: number;
   paidAt?: string;
+  description?: string;
+  items?: { name: string; price: number }[];
 }
 
 export interface DashboardStats {

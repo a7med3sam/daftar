@@ -49,12 +49,6 @@ export const viewport: Viewport = {
   themeColor: '#5b52f0',
 };
 
-const fabActions = [
-  { label: 'فاتورة جديدة', icon: '🧾', href: '/purchases/new' },
-  { label: 'محل جديد',     icon: '🏪', href: '/shops?action=new' },
-  { label: 'مشترٍ جديد',  icon: '👤', href: '/buyers?action=new' },
-];
-
 export default function RootLayout({
   children,
 }: {
@@ -84,9 +78,6 @@ export default function RootLayout({
             {/* Mobile bottom navigation */}
             <MobileNav />
           </div>
-
-          {/* FAB — mobile only via CSS */}
-          <FAB actions={fabActions} />
         </ThemeProvider>
       </body>
     </html>

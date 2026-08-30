@@ -156,7 +156,16 @@ function RecentPurchaseCard({ purchase: p }: { purchase: Purchase }) {
       {/* Meta row */}
       <div className="purchase-card-meta" style={{ marginTop: '0.5rem' }}>
         <span>📅 {formatDate(p.purchaseDate)}</span>
-        {p.buyer && <span>👤 {p.buyer.name}</span>}
+        {p.buyer && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            {p.buyer.imageUrl ? (
+              <img src={p.buyer.imageUrl} alt="" style={{ width: 14, height: 14, borderRadius: '50%', objectFit: 'cover' }} />
+            ) : (
+              '👤'
+            )}
+            {p.buyer.name}
+          </span>
+        )}
         {p.images?.length > 0 && <span>📎 {p.images.length} صورة</span>}
       </div>
     </Link>

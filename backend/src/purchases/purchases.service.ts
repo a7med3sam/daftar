@@ -31,6 +31,7 @@ export class PurchasesService {
         buyer: true,
         paidBy: true,
         images: true,
+        items: true,
       },
       orderBy: { purchaseDate: 'desc' },
     });
@@ -45,6 +46,7 @@ export class PurchasesService {
         buyer: true,
         paidBy: true,
         images: true,
+        items: true,
       },
     });
     if (!purchase)
@@ -80,12 +82,17 @@ export class PurchasesService {
         paymentStatus,
         paidById: paid > 0 ? dto.paidById : null,
         paidAt: paid > 0 && dto.paidAt ? new Date(dto.paidAt) : null,
+        description: dto.description,
+        items: dto.items?.length ? {
+          create: dto.items.map(i => ({ name: i.name, price: i.price }))
+        } : undefined,
       },
       include: {
         shop: true,
         buyer: true,
         paidBy: true,
         images: true,
+        items: true,
       },
     });
     return this.addRemainingAmount(purchase);
@@ -129,12 +136,20 @@ export class PurchasesService {
             : paid > 0
               ? existing.paidAt
               : null,
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.items && {
+          items: {
+            deleteMany: {},
+            create: dto.items.map(i => ({ name: i.name, price: i.price }))
+          }
+        }),
       },
       include: {
         shop: true,
         buyer: true,
         paidBy: true,
         images: true,
+        items: true,
       },
     });
     return this.addRemainingAmount(purchase);

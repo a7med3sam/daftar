@@ -6,10 +6,24 @@ import {
   IsEnum,
   IsOptional,
   Min,
+  IsString,
+  IsArray,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { PaymentStatus } from '@prisma/client';
-
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export class PurchaseItemDto {
+  @ApiProperty({ example: 'Product 1' })
+  @IsString()
+  name: string;
+
+  @ApiProperty({ example: 50.00 })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @IsPositive()
+  price: number;
+}
 
 export class CreatePurchaseDto {
   @ApiProperty({ example: 1, description: 'The ID of the shop' })
@@ -49,4 +63,16 @@ export class CreatePurchaseDto {
   @IsOptional()
   @IsDateString()
   paidAt?: string;
+
+  @ApiPropertyOptional({ example: 'Notes about the purchase' })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @ApiPropertyOptional({ type: [PurchaseItemDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PurchaseItemDto)
+  items?: PurchaseItemDto[];
 }

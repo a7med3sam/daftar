@@ -18,6 +18,8 @@ function BuyersContent() {
   const [formError, setFormError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<Buyer | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [uploadingId, setUploadingId] = useState<number | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -41,12 +43,14 @@ function BuyersContent() {
   function openCreate() {
     setName('');
     setFormError('');
+    setSelectedFile(null);
     setModal('create');
   }
 
   function openEdit(buyer: Buyer) {
     setName(buyer.name);
     setFormError('');
+    setSelectedFile(null);
     setModal(buyer);
   }
 
@@ -58,10 +62,20 @@ function BuyersContent() {
     try {
       if (modal && modal !== 'create') {
         const updated = await api.buyers.update((modal as Buyer).id, { name: name.trim() });
-        setBuyers(buyers.map(b => b.id === updated.id ? updated : b));
+        let finalImageUrl = updated.imageUrl;
+        if (selectedFile) {
+          const { imageUrl } = await api.buyers.uploadImage(updated.id, selectedFile);
+          finalImageUrl = imageUrl;
+        }
+        setBuyers(buyers.map(b => b.id === updated.id ? { ...updated, imageUrl: finalImageUrl } : b));
       } else {
         const created = await api.buyers.create({ name: name.trim() });
-        setBuyers([...buyers, created].sort((a, b) => a.name.localeCompare(b.name, 'ar')));
+        let finalImageUrl = created.imageUrl;
+        if (selectedFile) {
+          const { imageUrl } = await api.buyers.uploadImage(created.id, selectedFile);
+          finalImageUrl = imageUrl;
+        }
+        setBuyers([...buyers, { ...created, imageUrl: finalImageUrl }].sort((a, b) => a.name.localeCompare(b.name, 'ar')));
       }
       setModal(null);
     } catch (e: any) {
@@ -82,6 +96,18 @@ function BuyersContent() {
       setError(e.message);
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function handleImageUpload(buyer: Buyer, file: File) {
+    setUploadingId(buyer.id);
+    try {
+      const { imageUrl } = await api.buyers.uploadImage(buyer.id, file);
+      setBuyers(buyers.map(b => b.id === buyer.id ? { ...b, imageUrl } : b));
+    } catch (e: any) {
+      setError(e.message || 'فشل رفع الصورة');
+    } finally {
+      setUploadingId(null);
     }
   }
 
@@ -150,23 +176,46 @@ function BuyersContent() {
               style={{ marginBottom: '0.6rem', cursor: 'default' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-                {/* Avatar */}
-                <div style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: '50%',
-                  background: 'var(--accent-light)',
-                  color: 'var(--accent)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.1rem',
-                  fontWeight: 800,
-                  flexShrink: 0,
-                  letterSpacing: '-0.02em',
-                }} aria-hidden="true">
-                  {buyer.name.charAt(0)}
-                </div>
+              {/* Avatar — shows real photo only */}
+              {buyer.imageUrl && (
+                <label
+                  htmlFor={`avatar-upload-${buyer.id}`}
+                  title="انقر لتغيير الصورة"
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: '50%',
+                    background: 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    cursor: 'pointer',
+                    overflow: 'hidden',
+                    border: '2px solid var(--border)',
+                    position: 'relative',
+                  }}
+                  aria-label={`تغيير صورة ${buyer.name}`}
+                >
+                  {uploadingId === buyer.id ? (
+                    <span className="spinner spinner-sm" />
+                  ) : (
+                    <img src={buyer.imageUrl} alt={buyer.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  )}
+                  <input
+                    id={`avatar-upload-${buyer.id}`}
+                    type="file"
+                    accept="image/*"
+                    capture="user"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload(buyer, file);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+              )}
 
                 {/* Name */}
                 <span style={{
@@ -210,6 +259,45 @@ function BuyersContent() {
       >
         <form onSubmit={handleSave} noValidate>
           {formError && <div className="alert alert-error">{formError}</div>}
+          <div className="form-group" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <label
+              htmlFor="new-buyer-image"
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                background: 'var(--bg-secondary)',
+                border: '2px dashed var(--border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                overflow: 'hidden',
+                color: 'var(--text-muted)',
+              }}
+            >
+              {selectedFile ? (
+                <img src={URL.createObjectURL(selectedFile)} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (modal !== 'create' && (modal as Buyer)?.imageUrl) ? (
+                <img src={(modal as Buyer).imageUrl!} alt="Current" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span style={{ fontSize: '1.5rem' }}>📷</span>
+              )}
+            </label>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>صورة المشتري (اختياري)</span>
+            <input
+              id="new-buyer-image"
+              type="file"
+              accept="image/*"
+              capture="user"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) setSelectedFile(file);
+                e.target.value = '';
+              }}
+            />
+          </div>
           <div className="form-group">
             <label className="form-label" htmlFor="buyer-name">الاسم *</label>
             <input

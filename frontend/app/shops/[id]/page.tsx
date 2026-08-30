@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { api, ShopWithStats, Purchase } from '@/lib/api';
+import { api, ShopWithStats, Purchase, PurchaseImage } from '@/lib/api';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import StatusBadge from '@/components/StatusBadge';
-import ImageGallery from '@/components/ImageGallery';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import PaymentModal from '@/components/PaymentModal';
 import PaymentDetailsModal from '@/components/PaymentDetailsModal';
@@ -229,6 +228,128 @@ export default function ShopDetailPage() {
   );
 }
 
+/* ── Image Thumbnails Strip ── */
+function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+
+  return (
+    <>
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.4rem',
+          overflowX: 'auto',
+          padding: '0.4rem 0 0.5rem',
+          scrollbarWidth: 'none',
+        }}
+      >
+        {images.map((img, idx) => (
+          <button
+            key={img.id}
+            type="button"
+            onClick={() => setLightboxIdx(idx)}
+            style={{
+              flexShrink: 0,
+              width: 60,
+              height: 60,
+              borderRadius: 'var(--radius-sm)',
+              overflow: 'hidden',
+              border: '2px solid var(--border)',
+              padding: 0,
+              cursor: 'pointer',
+              background: 'var(--bg-primary)',
+              position: 'relative',
+            }}
+            aria-label={`عرض الصورة ${idx + 1}`}
+          >
+            <img
+              src={img.imageUrl}
+              alt=""
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+            {idx === 2 && images.length > 3 && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'rgba(0,0,0,0.55)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                }}
+              >
+                +{images.length - 3}
+              </div>
+            )}
+          </button>
+        )).slice(0, 3)}
+      </div>
+
+      {/* Simple Lightbox */}
+      {lightboxIdx !== null && (
+        <div
+          onClick={() => setLightboxIdx(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.92)',
+            zIndex: 2000,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+          }}
+        >
+          {/* Counter */}
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', marginBottom: '1rem' }}>
+            {lightboxIdx + 1} / {images.length}
+          </p>
+          <img
+            src={images[lightboxIdx].imageUrl}
+            alt=""
+            style={{ maxWidth: '95vw', maxHeight: '75vh', objectFit: 'contain', borderRadius: 12 }}
+          />
+          {/* Prev / Next */}
+          <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem' }}>
+            {lightboxIdx > 0 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setLightboxIdx((i) => (i ?? 1) - 1); }}
+                style={lbBtnStyle}
+              >‹</button>
+            )}
+            <button onClick={() => setLightboxIdx(null)} style={{ ...lbBtnStyle, fontSize: '1rem' }}>✕</button>
+            {lightboxIdx < images.length - 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setLightboxIdx((i) => (i ?? 0) + 1); }}
+                style={lbBtnStyle}
+              >›</button>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+const lbBtnStyle: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.15)',
+  border: 'none',
+  borderRadius: '50%',
+  width: 44,
+  height: 44,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'white',
+  fontSize: '1.5rem',
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+};
+
 /* ── Purchase Card Component ── */
 function PurchaseCard({
   purchase: p,
@@ -279,7 +400,12 @@ function PurchaseCard({
         )}
         <div>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 500 }}>المشتري</p>
-          <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{p.buyer?.name ?? '—'}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{p.buyer?.name ?? '—'}</p>
+            {p.buyer?.imageUrl && (
+              <img src={p.buyer.imageUrl} alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
+            )}
+          </div>
         </div>
       </div>
 
@@ -304,15 +430,16 @@ function PurchaseCard({
           }}
         >
           ✅ دفع بواسطة {p.paidBy.name}
+          {p.paidBy.imageUrl && (
+            <img src={p.paidBy.imageUrl} alt="" style={{ width: 18, height: 18, borderRadius: '50%', objectFit: 'cover', marginLeft: '-0.15rem' }} />
+          )}
           {p.paidAt && ` · ${formatDate(p.paidAt)}`}
         </button>
       )}
 
-      {/* Images */}
+      {/* Images — thumbnail strip */}
       {p.images?.filter(i => !i.isReceipt).length > 0 && (
-        <div style={{ marginBottom: '0.5rem' }}>
-          <ImageGallery images={p.images.filter(i => !i.isReceipt)} />
-        </div>
+        <ImageThumbnails images={p.images.filter(i => !i.isReceipt)} />
       )}
 
       {/* Actions */}
@@ -326,6 +453,13 @@ function PurchaseCard({
             💵 تسجيل دفعة
           </button>
         )}
+        <Link
+          href={`/purchases/${p.id}`}
+          className="btn btn-secondary btn-sm"
+          aria-label="تفاصيل الفاتورة"
+        >
+          🔍 تفاصيل
+        </Link>
         <Link
           href={`/purchases/${p.id}/edit`}
           className="btn btn-secondary btn-sm"

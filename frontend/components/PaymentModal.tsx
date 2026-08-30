@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { api, Purchase, Buyer } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import BottomSheet from '@/components/ui/BottomSheet';
+import MobilePicker from '@/components/ui/MobilePicker';
 
 interface Props {
   purchase: Purchase;
@@ -152,20 +153,15 @@ export default function PaymentModal({ purchase, onSuccess, onCancel }: Props) {
         </div>
 
         {/* Paid by & date */}
-        <div className="form-group">
-          <label className="form-label" htmlFor="pay-paidby">دفع بواسطة</label>
-          <select
+        <div className="form-group" style={{ display: 'grid', gap: '0.75rem' }}>
+          <MobilePicker
             id="pay-paidby"
-            className="form-control"
+            label="دفع بواسطة"
             value={paidById}
-            onChange={e => setPaidById(e.target.value)}
-            disabled={loading}
-          >
-            <option value="">— اختر مشتريًا —</option>
-            {buyers.map(b => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+            onChange={setPaidById}
+            options={buyers.map(b => ({ value: b.id.toString(), label: b.name, imageUrl: b.imageUrl }))}
+            placeholder="— اختر مشتريًا —"
+          />
         </div>
 
         <div className="form-group">

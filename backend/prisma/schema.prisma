@@ -18,6 +18,7 @@ model Shop {
 model Buyer {
   id              Int        @id @default(autoincrement())
   name            String
+  imageUrl        String?
   createdAt       DateTime   @default(now())
   purchases       Purchase[] @relation("BuyerPurchases")
   paidPurchases   Purchase[] @relation("PaidByPurchases")
@@ -34,11 +35,23 @@ model Purchase {
   paidById      Int?
   paidAt        DateTime?
   createdAt     DateTime        @default(now())
+  description   String?
 
   shop    Shop            @relation(fields: [shopId], references: [id])
   buyer   Buyer           @relation("BuyerPurchases", fields: [buyerId], references: [id])
   paidBy  Buyer?          @relation("PaidByPurchases", fields: [paidById], references: [id])
   images  PurchaseImage[]
+  items   PurchaseItem[]
+}
+
+model PurchaseItem {
+  id         Int      @id @default(autoincrement())
+  purchaseId Int
+  name       String
+  price      Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
 }
 
 model PurchaseImage {

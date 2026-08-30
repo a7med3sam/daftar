@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateBuyerDto } from './dto/create-buyer.dto';
 import { UpdateBuyerDto } from './dto/update-buyer.dto';
 
 @Injectable()
 export class BuyersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cloudinary: CloudinaryService,
+  ) {}
 
   async findAll() {
     return this.prisma.buyer.findMany({
@@ -26,6 +30,13 @@ export class BuyersService {
   async update(id: number, dto: UpdateBuyerDto) {
     await this.findOne(id);
     return this.prisma.buyer.update({ where: { id }, data: dto });
+  }
+
+  async uploadImage(id: number, fileBuffer: Buffer): Promise<{ imageUrl: string }> {
+    await this.findOne(id);
+    const imageUrl = await this.cloudinary.uploadImage(fileBuffer, 'daftar/buyers');
+    await this.prisma.buyer.update({ where: { id }, data: { imageUrl } });
+    return { imageUrl };
   }
 
   async remove(id: number) {
