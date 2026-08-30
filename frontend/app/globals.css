@@ -1978,3 +1978,8 @@ tbody tr:hover {
 .mobile-add-icon {
   font-size: 1.2rem;
 }
+
+.hide-on-mobile { }
+@media (max-width: 768px) { .hide-on-mobile { display: none !important; } }
+.purchase-card-clickable { cursor: pointer; transition: transform 0.2s; }
+.purchase-card-clickable:active { transform: scale(0.98); }

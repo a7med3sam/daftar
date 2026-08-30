@@ -11,8 +11,6 @@ const navItems = [
 
 const navItemsRight = [
   { href: '/buyers', label: 'المشترون', icon: '👥' },
-  // Placeholder for balance or settings later
-  { href: '#',       label: 'الإعدادات', icon: '⚙️' },
 ];
 
 const addActions = [

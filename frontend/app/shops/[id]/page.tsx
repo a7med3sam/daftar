@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api, ShopWithStats, Purchase, PurchaseImage } from '@/lib/api';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -243,11 +243,10 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
           scrollbarWidth: 'none',
         }}
       >
-        {images.map((img, idx) => (
+        {images.length > 0 && (
           <button
-            key={img.id}
             type="button"
-            onClick={() => setLightboxIdx(idx)}
+            onClick={() => setLightboxIdx(0)}
             style={{
               flexShrink: 0,
               width: 60,
@@ -260,14 +259,14 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
               background: 'var(--bg-primary)',
               position: 'relative',
             }}
-            aria-label={`عرض الصورة ${idx + 1}`}
+            aria-label={`عرض ${images.length} صورة`}
           >
             <img
-              src={img.imageUrl}
+              src={images[0].imageUrl}
               alt=""
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />
-            {idx === 2 && images.length > 3 && (
+            {images.length > 1 && (
               <div
                 style={{
                   position: 'absolute',
@@ -281,11 +280,11 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
                   fontSize: '0.9rem',
                 }}
               >
-                +{images.length - 3}
+                +{images.length - 1}
               </div>
             )}
           </button>
-        )).slice(0, 3)}
+        )}
       </div>
 
       {/* Simple Lightbox */}
@@ -366,9 +365,16 @@ function PurchaseCard({
 }) {
   const remaining = Number(p.remainingAmount);
   const isPaid = p.paymentStatus === 'PAID';
+  const router = useRouter();
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('a')) return;
+    router.push(`/purchases/${p.id}`);
+  };
 
   return (
-    <div className="purchase-card" style={{ marginBottom: '0.75rem' }}>
+    <div className="purchase-card purchase-card-clickable" style={{ marginBottom: '0.75rem' }} onClick={handleCardClick}>
       {/* Top row */}
       <div className="purchase-card-row" style={{ marginBottom: '0.6rem' }}>
         <div>
@@ -443,19 +449,20 @@ function PurchaseCard({
       )}
 
       {/* Actions */}
-      <div className="purchase-card-actions">
+      <div className="purchase-card-actions" style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
         {!isPaid && (
           <button
-            className="btn btn-success"
-            style={{ flex: 1 }}
+            className="btn btn-success btn-sm"
+            style={{ flex: '1 1 30%', minWidth: '80px', padding: '0.4rem 0.5rem', fontSize: '0.85rem' }}
             onClick={() => onPay(p)}
           >
-            💵 تسجيل دفعة
+            💵 دفع
           </button>
         )}
         <Link
           href={`/purchases/${p.id}`}
-          className="btn btn-secondary btn-sm"
+          className="btn btn-secondary btn-sm hide-on-mobile"
+          style={{ flex: '1 1 30%', minWidth: '80px', padding: '0.4rem 0.5rem', fontSize: '0.85rem' }}
           aria-label="تفاصيل الفاتورة"
         >
           🔍 تفاصيل
@@ -463,6 +470,7 @@ function PurchaseCard({
         <Link
           href={`/purchases/${p.id}/edit`}
           className="btn btn-secondary btn-sm"
+          style={{ flex: '1 1 30%', minWidth: '80px', padding: '0.4rem 0.5rem', fontSize: '0.85rem' }}
           aria-label="تعديل الفاتورة"
         >
           ✏️ تعديل
@@ -471,7 +479,7 @@ function PurchaseCard({
           className="btn-icon"
           onClick={() => onDelete(p.id)}
           aria-label="حذف الفاتورة"
-          style={{ color: 'var(--danger)' }}
+          style={{ color: 'var(--danger)', padding: '0.4rem', minWidth: 'auto', flex: '0 0 auto' }}
         >
           🗑️
         </button>

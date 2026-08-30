@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 import ThemeToggle from './ThemeToggle';
 
 const navItems = [
@@ -13,11 +15,19 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const logoSrc = mounted && resolvedTheme === 'dark' 
+    ? '/logo-for-dark-mood.svg' 
+    : '/logo-for-white-mood.svg';
 
   return (
     <aside className="sidebar">
       <Link href="/" className="sidebar-logo">
-        <img src="/logo2.svg" alt="شعار دفتر" style={{ height: '44px', width: 'auto', display: 'block' }} />
+        <img src={logoSrc} alt="شعار دفتر" style={{ height: '44px', width: 'auto', display: 'block' }} />
       </Link>
 
       <nav className="sidebar-nav" aria-label="التنقل الرئيسي">
