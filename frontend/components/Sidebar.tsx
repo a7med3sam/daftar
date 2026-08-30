@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import ThemeToggle from './ThemeToggle';
 
 const navItems = [
-  { href: '/', label: 'الرئيسية', icon: '🏠' },
-  { href: '/shops', label: 'المحلات', icon: '🏪' },
-  { href: '/buyers', label: 'المشترون', icon: '👥' },
+  { href: '/',              label: 'الرئيسية',  icon: '🏠' },
+  { href: '/shops',         label: 'المحلات',   icon: '🏪' },
+  { href: '/buyers',        label: 'المشترون',  icon: '👥' },
   { href: '/purchases/new', label: 'شراء جديد', icon: '➕' },
 ];
 
@@ -39,10 +40,18 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '1rem' }}>
-        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+      <div style={{
+        borderTop: '1px solid var(--border)',
+        paddingTop: '1rem',
+        marginTop: '1rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
           دفتر v1.0
         </p>
+        <ThemeToggle />
       </div>
     </aside>
   );

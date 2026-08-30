@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { Cairo } from 'next/font/google';
+import { ThemeProvider } from 'next-themes';
 import './globals.css';
 import Sidebar from '@/components/Sidebar';
+import MobileNav from '@/components/MobileNav';
 
 const cairo = Cairo({
   subsets: ['arabic', 'latin'],
@@ -20,12 +22,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className={`${cairo.variable} font-cairo`}>
-        <div className="app-layout">
-          <Sidebar />
-          <main className="main-content">{children}</main>
-        </div>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <div className="app-layout">
+            <Sidebar />
+            <main className="main-content">{children}</main>
+            <MobileNav />
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );
