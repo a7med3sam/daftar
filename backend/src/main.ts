@@ -30,6 +30,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document, {
     swaggerOptions: {
       docExpansion: 'none',
+      displayRequestDuration: true,
     },
   });
 
