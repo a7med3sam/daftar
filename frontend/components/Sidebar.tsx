@@ -1,9 +1,8 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
 import ThemeToggle from './ThemeToggle';
 
 const navItems = [
@@ -15,19 +14,26 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  const logoSrc = mounted && resolvedTheme === 'dark' 
-    ? '/logo-for-dark-mood.svg' 
-    : '/logo-for-white-mood.svg';
 
   return (
     <aside className="sidebar">
       <Link href="/" className="sidebar-logo">
-        <img src={logoSrc} alt="شعار دفتر" style={{ height: '44px', width: 'auto', display: 'block' }} />
+        <Image
+          className="sidebar-logo-img sidebar-logo-light"
+          src="/logo-for-white-mood.svg"
+          alt="شعار دفتر"
+          width={104}
+          height={73}
+          priority
+        />
+        <Image
+          className="sidebar-logo-img sidebar-logo-dark"
+          src="/logo-for-dark-mood.svg"
+          alt="شعار دفتر"
+          width={104}
+          height={73}
+          priority
+        />
       </Link>
 
       <nav className="sidebar-nav" aria-label="التنقل الرئيسي">

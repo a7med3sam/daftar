@@ -290,7 +290,11 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
       {/* Simple Lightbox */}
       {lightboxIdx !== null && (
         <div
-          onClick={() => setLightboxIdx(null)}
+          data-lightbox
+          onClick={(e) => {
+            e.stopPropagation();
+            setLightboxIdx(null);
+          }}
           style={{
             position: 'fixed',
             inset: 0,
@@ -310,6 +314,7 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
           <img
             src={images[lightboxIdx].imageUrl}
             alt=""
+            onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: '95vw', maxHeight: '75vh', objectFit: 'contain', borderRadius: 12 }}
           />
           {/* Prev / Next */}
@@ -320,7 +325,7 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
                 style={lbBtnStyle}
               >‹</button>
             )}
-            <button onClick={() => setLightboxIdx(null)} style={{ ...lbBtnStyle, fontSize: '1rem' }}>✕</button>
+            <button onClick={(e) => { e.stopPropagation(); setLightboxIdx(null); }} style={{ ...lbBtnStyle, fontSize: '1rem' }}>✕</button>
             {lightboxIdx < images.length - 1 && (
               <button
                 onClick={(e) => { e.stopPropagation(); setLightboxIdx((i) => (i ?? 0) + 1); }}
@@ -369,7 +374,7 @@ function PurchaseCard({
 
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('a')) return;
+    if (target.closest('button') || target.closest('a') || target.closest('[data-lightbox]')) return;
     router.push(`/purchases/${p.id}`);
   };
 

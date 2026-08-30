@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const navItems = [
+const leadingNavItems = [
   { href: '/',       label: 'الرئيسية', icon: '🏠' },
   { href: '/shops',  label: 'المحلات',  icon: '🏪' },
 ];
 
-const navItemsRight = [
+const trailingNavItems = [
   { href: '/buyers', label: 'المشترون', icon: '👥' },
 ];
 
@@ -59,56 +59,47 @@ export default function MobileNav() {
 
       {/* Bottom Nav Bar */}
       <nav className="mobile-nav" role="navigation" aria-label="التنقل الرئيسي">
-        <div className="mobile-nav-inner" style={{ padding: '0 0.5rem' }}>
-          
-          {/* Left items */}
-          <div style={{ display: 'flex', flex: 1, justifyContent: 'space-around' }}>
-            {navItems.map((item) => {
-              const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`mobile-nav-item ${isActive ? 'active' : ''}`}
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  <span className="mobile-nav-icon" aria-hidden="true">{item.icon}</span>
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
+        <div className="mobile-nav-inner">
+          {leadingNavItems.map((item) => {
+            const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`mobile-nav-item ${isActive ? 'active' : ''}`}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <span className="mobile-nav-icon" aria-hidden="true">{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
 
-          {/* Central Add Button */}
-          <div className="mobile-nav-center">
-            <button
-              className={`mobile-nav-add-btn ${isAddMenuOpen ? 'active' : ''}`}
-              onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}
-              aria-label="إضافة جديد"
-              aria-expanded={isAddMenuOpen}
-            >
-              ＋
-            </button>
-          </div>
+          <button
+            type="button"
+            className={`mobile-nav-item mobile-nav-add-btn ${isAddMenuOpen ? 'active' : ''}`}
+            onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}
+            aria-label="إضافة جديد"
+            aria-expanded={isAddMenuOpen}
+          >
+            <span className="mobile-nav-add-icon" aria-hidden="true">＋</span>
+            <span>إضافة</span>
+          </button>
 
-          {/* Right items */}
-          <div style={{ display: 'flex', flex: 1, justifyContent: 'space-around' }}>
-            {navItemsRight.map((item) => {
-              const isActive = pathname.startsWith(item.href) && item.href !== '#';
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`mobile-nav-item ${isActive ? 'active' : ''}`}
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  <span className="mobile-nav-icon" aria-hidden="true">{item.icon}</span>
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-
+          {trailingNavItems.map((item) => {
+            const isActive = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`mobile-nav-item ${isActive ? 'active' : ''}`}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <span className="mobile-nav-icon" aria-hidden="true">{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
         </div>
       </nav>
     </>
