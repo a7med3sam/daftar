@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -232,16 +232,33 @@ export default function ShopDetailPage() {
 /* ── Image Thumbnails Strip ── */
 function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
   const [canPortal, setCanPortal] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setCanPortal(true);
+
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
   }, []);
 
-  const closeLightbox = (e: React.PointerEvent | React.MouseEvent) => {
+  const openLightbox = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    setIsClosing(false);
+    setLightboxIdx(0);
+  };
+
+  const closeLightbox = (e: React.SyntheticEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setLightboxIdx(null);
+    if (isClosing) return;
+    setIsClosing(true);
+    closeTimerRef.current = setTimeout(() => {
+      setLightboxIdx(null);
+      setIsClosing(false);
+    }, 260);
   };
 
   return (
@@ -258,7 +275,11 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
         {images.length > 0 && (
           <button
             type="button"
-            onClick={() => setLightboxIdx(0)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              openLightbox();
+            }}
             style={{
               flexShrink: 0,
               width: 60,
@@ -305,9 +326,8 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
           onPointerDown={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            setLightboxIdx(null);
           }}
-          onClick={(e) => e.stopPropagation()}
+          onClick={closeLightbox}
           style={{
             position: 'fixed',
             inset: 0,
@@ -318,6 +338,8 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
             alignItems: 'center',
             justifyContent: 'center',
             padding: '1rem',
+            opacity: isClosing ? 0 : 1,
+            transition: 'opacity 0.18s ease',
           }}
         >
           {/* Counter */}
@@ -341,8 +363,11 @@ function ImageThumbnails({ images }: { images: PurchaseImage[] }) {
               >‹</button>
             )}
             <button
-              onPointerDown={closeLightbox}
-              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onClick={closeLightbox}
               style={{ ...lbBtnStyle, fontSize: '1rem' }}
             >✕</button>
             {lightboxIdx < images.length - 1 && (
