@@ -46,7 +46,11 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#5b52f0',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f4f6fb' },
+    { media: '(prefers-color-scheme: dark)', color: '#0d1424' },
+  ],
+  colorScheme: 'light dark',
 };
 
 export default function RootLayout({
@@ -57,7 +61,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className={cairo.variable}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {/* Service Worker Registration for PWA */}
           <PWARegister />
           
