@@ -17,8 +17,7 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <Link href="/" className="sidebar-logo">
-        <span className="logo-icon" aria-hidden="true">📒</span>
-        دفتر
+        <img src="/logo2.svg" alt="شعار دفتر" style={{ height: '44px', width: 'auto', display: 'block' }} />
       </Link>
 
       <nav className="sidebar-nav" aria-label="التنقل الرئيسي">

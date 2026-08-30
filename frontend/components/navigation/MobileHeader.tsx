@@ -7,8 +7,7 @@ export default function MobileHeader() {
   return (
     <header className="mobile-header" role="banner">
       <Link href="/" className="mobile-header-logo" aria-label="الرئيسية — دفتر">
-        <span aria-hidden="true">📒</span>
-        <span>دفتر</span>
+        <img src="/logo2.svg" alt="شعار دفتر" style={{ height: '32px', width: 'auto', display: 'block' }} />
       </Link>
       <ThemeToggle />
     </header>
