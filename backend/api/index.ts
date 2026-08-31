@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 
 const expressApp = express();
 
@@ -13,11 +14,17 @@ async function bootstrap() {
     new ExpressAdapter(expressApp),
   );
 
-  // Enable CORS
+  // Enable CORS (credentials required for HttpOnly cookies)
   app.enableCors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    origin:
+      process.env.FRONTEND_URL && process.env.NODE_ENV === 'production'
+        ? process.env.FRONTEND_URL
+        : '*',
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
+    credentials: true,
   });
+
+  app.use(cookieParser());
 
   // Global validation pipe
   app.useGlobalPipes(

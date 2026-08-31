@@ -3,8 +3,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle';
+import NotificationBell from '@/components/NotificationBell';
+import { useAuth } from '@/lib/auth';
 
 export default function MobileHeader() {
+  const { user, loading, logout } = useAuth();
+
   return (
     <header className="mobile-header" role="banner">
       <Link href="/" className="mobile-header-logo" aria-label="الرئيسية — دفتر">
@@ -25,7 +29,18 @@ export default function MobileHeader() {
           priority
         />
       </Link>
-      <ThemeToggle />
+
+      <div className="mobile-header-actions">
+        <ThemeToggle />
+        {!loading && user && (
+          <>
+            <NotificationBell />
+            <button type="button" className="mobile-header-user" onClick={() => logout()} title="تسجيل الخروج" aria-label="تسجيل الخروج">
+              <span className="mobile-header-avatar">{user.name.charAt(0)}</span>
+            </button>
+          </>
+        )}
+      </div>
     </header>
   );
 }

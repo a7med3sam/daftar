@@ -69,3 +69,88 @@ enum PaymentStatus {
   PARTIALLY_PAID
   PAID
 }
+
+model User {
+  id            Int               @id @default(autoincrement())
+  name          String            @unique
+  normalizedName String           @unique
+  passwordHash  String
+  familyGroup   String            @default("default")
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  refreshTokens     RefreshToken[]
+  auditLogs         AuditLog[]
+  receivedNotifs    Notification[] @relation("NotificationRecipient")
+  sentNotifs        Notification[] @relation("NotificationActor")
+  pushSubscriptions PushSubscription[]
+
+  @@index([familyGroup])
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  tokenHash String   @unique
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+  replacedByTokenHash String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  userName   String
+  action     String
+  entityType String
+  entityId   Int?
+  entityName String?
+  amount     Decimal? @db.Decimal(10, 2)
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  actorId     Int?
+  actorName   String
+  recipientId Int
+  type        String
+  title       String
+  message     String
+  entityType  String?
+  entityId    Int?
+  entityName  String?
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  actor     User? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  recipient User  @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, readAt])
+  @@index([recipientId, createdAt])
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  endpoint  String   @unique
+  keysAuth  String
+  keysP256dh String
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

@@ -16,6 +16,20 @@ export function formatDate(dateStr: string): string {
   });
 }
 
+export function formatRelativeTime(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diff = now - then;
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'الآن';
+  if (minutes < 60) return `منذ ${minutes} دقيقة`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `منذ ${hours} ساعة`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `منذ ${days} يوم`;
+  return formatDate(dateStr);
+}
+
 export function getStatusLabel(status: PaymentStatus): string {
   const map: Record<PaymentStatus, string> = {
     UNPAID: 'غير مدفوع',

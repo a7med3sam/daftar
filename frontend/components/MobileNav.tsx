@@ -10,7 +10,9 @@ const leadingNavItems = [
 ];
 
 const trailingNavItems = [
-  { href: '/buyers', label: 'المشترون', icon: '👥' },
+  { href: '/notifications', label: 'الإشعارات', icon: '🔔' },
+  { href: '/activity',      label: 'النشاط',    icon: '📜' },
+  { href: '/buyers',        label: 'المشترون',  icon: '👥' },
 ];
 
 const addActions = [

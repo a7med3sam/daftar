@@ -5,7 +5,7 @@ const OFFLINE_DOCUMENT = `<!doctype html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <title>لا يوجد اتصال بالإنترنت</title>
+    <title>أنت غير متصل بالإنترنت</title>
     <style>
       * { box-sizing: border-box; }
       body {
@@ -74,8 +74,8 @@ const OFFLINE_DOCUMENT = `<!doctype html>
   <body>
     <main>
       <div class="mark" aria-hidden="true">!</div>
-      <h1>لا يوجد اتصال بالإنترنت</h1>
-      <p>تعذر تحميل الصفحة المطلوبة. تحقق من الاتصال ثم حاول مرة أخرى.</p>
+      <h1>أنت غير متصل بالإنترنت</h1>
+      <p>تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت ثم أعد المحاولة. البيانات المحفوظة سابقاً ما زالت متاحة.</p>
       <button type="button" onclick="window.location.reload()">إعادة المحاولة</button>
     </main>
   </body>
@@ -122,5 +122,52 @@ self.addEventListener('fetch', (event) => {
       const cache = await caches.open(CACHE_VERSION);
       return cache.match(OFFLINE_URL);
     }),
+  );
+});
+
+// ── Push notifications ─────────────────────────────────────────
+self.addEventListener('push', (event) => {
+  let data = {
+    title: 'دفتر',
+    body: '',
+    icon: '/favicon/android-chrome-192x192.png',
+    url: '/',
+  };
+  try {
+    if (event.data) {
+      const parsed = event.data.json();
+      data = { ...data, ...parsed };
+    }
+  } catch {
+    /* ignore non-JSON payloads */
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon,
+      badge: '/favicon/favicon-32x32.png',
+      data: { url: data.url },
+      vibrate: [100, 50, 100],
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if ('focus' in client) {
+            client.navigate(url);
+            return client.focus();
+          }
+        }
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(url);
+        }
+      }),
   );
 });

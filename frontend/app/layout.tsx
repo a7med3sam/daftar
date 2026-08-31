@@ -6,6 +6,8 @@ import Sidebar from '@/components/Sidebar';
 import MobileNav from '@/components/MobileNav';
 import MobileHeader from '@/components/navigation/MobileHeader';
 import PWARegister from '@/components/PWARegister';
+import { AuthProvider } from '@/lib/auth';
+import AuthGate from '@/components/AuthGate';
 
 const cairo = Cairo({
   subsets: ['arabic', 'latin'],
@@ -63,24 +65,26 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {/* Service Worker Registration for PWA */}
           <PWARegister />
-          
-          {/* Mobile header — sticky top, mobile only */}
-          <MobileHeader />
 
-          <div className="app-layout">
-            {/* Desktop sidebar */}
-            <Sidebar />
+          <AuthProvider>
+            {/* Mobile header — sticky top, mobile only */}
+            <MobileHeader />
 
-            {/* Main content */}
-            <main className="main-content" id="main-content">
-              <div style={{ padding: '1.25rem', maxWidth: '900px', margin: '0 auto' }}>
-                {children}
-              </div>
-            </main>
+            <div className="app-layout">
+              {/* Desktop sidebar */}
+              <Sidebar />
 
-            {/* Mobile bottom navigation */}
-            <MobileNav />
-          </div>
+              {/* Main content */}
+              <main className="main-content" id="main-content">
+                <div style={{ padding: '1.25rem', maxWidth: '900px', margin: '0 auto' }}>
+                  <AuthGate>{children}</AuthGate>
+                </div>
+              </main>
+
+              {/* Mobile bottom navigation */}
+              <MobileNav />
+            </div>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
